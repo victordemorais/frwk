@@ -11,8 +11,7 @@ import {
   Switch
 } from "native-base";
 import { View, StyleSheet, FlatList, NetInfo } from "react-native";
-import BaseService from "../services";
-import { storeData, retrieveData } from "../config/storage";
+import { retrieveData } from "../config/storage";
 import TabbarHeader from "../components/tabbarheader";
 
 export default class Home extends Component {
@@ -24,7 +23,16 @@ export default class Home extends Component {
       todos: JSON.parse(await retrieveData("todos"))
     });
   }
-
+  componentWillMount() {
+    NetInfo.getConnectionInfo().then(async connectionInfo => {
+      if (connectionInfo.type !== "none") {
+        const base = new BaseService();
+        base.get("/todos").then(async todos => {
+          await storeData("todos", JSON.stringify(todos));
+        });
+      }
+    });
+  }
   render() {
     const keyExtractor = (item, index) => `${index} - ${item.toString()}`;
     return (
